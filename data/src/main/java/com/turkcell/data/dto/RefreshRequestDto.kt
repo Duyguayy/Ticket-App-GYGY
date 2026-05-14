@@ -1,4 +1,8 @@
 package com.turkcell.data.dto
 
-class RefreshRequestDto {
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RefreshRequestDto(val refreshToken: String)
+
+// {"refreshToken":"abc"}

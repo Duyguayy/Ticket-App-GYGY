@@ -8,7 +8,6 @@ android {
     namespace = "com.turkcell.core"
     compileSdk = 36
 
-
     defaultConfig {
         minSdk = 24
 

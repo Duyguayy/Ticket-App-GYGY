@@ -26,20 +26,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.turkcell.ticketapp.viewmodel.LoginViewModel
+import com.turkcell.ticketapp.viewmodel.RegisterViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun LoginScreen(
-    viewModel: LoginViewModel = koinViewModel(),
-    onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+fun RegisterScreen(
+    viewModel: RegisterViewModel = koinViewModel(),
+    onRegisterSuccess: () -> Unit,
+    onNavigateToLogin: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.isLoggedIn) {
-        if(state.isLoggedIn)
-            onLoginSuccess()
+    LaunchedEffect(state.isRegistered) {
+        if (state.isRegistered) onRegisterSuccess()
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -50,7 +49,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Giriş Yap", style = MaterialTheme.typography.displaySmall)
+            Text("Kayıt Ol", style = MaterialTheme.typography.displaySmall)
             Spacer(Modifier.height(24.dp))
 
             OutlinedTextField(
@@ -71,6 +70,26 @@ fun LoginScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = state.confirmPassword,
+                onValueChange = viewModel::onConfirmPasswordChange,
+                label = { Text("Şifre Tekrar") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.confirmPassword.isNotEmpty() && !state.passwordsMatch,
+                supportingText = {
+                    if (state.confirmPassword.isNotEmpty() && !state.passwordsMatch) {
+                        Text(
+                            text = "Şifreler eşleşmiyor",
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
             )
 
             if (state.errorMessage != null) {
@@ -95,13 +114,13 @@ fun LoginScreen(
                         color = LocalContentColor.current,
                     )
                 } else {
-                    Text("Giriş Yap")
+                    Text("Kayıt Ol")
                 }
             }
 
             Spacer(Modifier.height(24.dp))
-            TextButton(onClick = onNavigateToRegister) {
-                Text("Hesabın yok mu? Kayıt ol")
+            TextButton(onClick = onNavigateToLogin) {
+                Text("Zaten hesabın var mı? Giriş yap")
             }
         }
     }
