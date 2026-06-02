@@ -4,7 +4,9 @@ import com.turkcell.data.local.TokenStore
 import okhttp3.Interceptor
 import okhttp3.Response
 
-// Var olan jwt'i api'e giden isteklere ekle..
+// Var olan jwt'i api'e giden isteklere ekle..***
+//chain.proceed() İsteği sonraki interceptor'a veya gerçek işleme devam ettir
+//Interceptor (Ara Kesici), bir istek veya işlemin çalışmasından önce ya da sonra araya girerek ek işlemler yapmanı sağlayan yapıdır.
 class AuthInterceptor(private val tokenStore: TokenStore) : Interceptor
 {
     private val authPaths = setOf(

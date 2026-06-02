@@ -41,6 +41,8 @@ class RegisterViewModel(
     fun onConfirmPasswordChange(value: String) =
         _state.update { it.copy(confirmPassword = value, errorMessage = null) }
 
+    fun consumeError() = _state.update { it.copy(errorMessage = null) }
+
     fun submit() {
         val current = _state.value
         if (!current.canSubmit) return
@@ -56,7 +58,7 @@ class RegisterViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.toUserMessage(),
+                            errorMessage = error.toUserMessage()
                         )
                     }
                 }

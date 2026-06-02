@@ -8,6 +8,7 @@ import org.koin.dsl.module
 
 val appModule = module {
     viewModelOf(::LoginViewModel)
-    viewModelOf(::RegisterViewModel)
     viewModelOf(::HomeViewModel)
+    viewModelOf(::RegisterViewModel)
+
 }

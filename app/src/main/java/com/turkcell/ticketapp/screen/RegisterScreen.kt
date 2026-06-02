@@ -89,7 +89,7 @@ fun RegisterScreen(
                             color = MaterialTheme.colorScheme.error,
                         )
                     }
-                },
+                }
             )
 
             if (state.errorMessage != null) {

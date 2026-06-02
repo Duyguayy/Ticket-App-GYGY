@@ -19,5 +19,3 @@ suspend inline fun <T> runCatchingApi(crossinline block: suspend () -> T): Resul
     Result.failure(e)
 }
 
-// 1- Bir ekranda koin ile (araştır) authRepository'i kullanmaya çalışalım. (Giriş ekranı)
-// backende istek at, cevabı ekrana yazmana gerek yok.
