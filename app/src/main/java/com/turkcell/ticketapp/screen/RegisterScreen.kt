@@ -22,10 +22,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.turkcell.ticketapp.R
 import com.turkcell.ticketapp.viewmodel.RegisterViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -49,14 +51,18 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Kayıt Ol", style = MaterialTheme.typography.displaySmall)
+            Text(stringResource(R.string.register_title), style = MaterialTheme.typography.displaySmall)
             Spacer(Modifier.height(24.dp))
 
             OutlinedTextField(
                 value = state.email,
                 onValueChange = viewModel::onEmailChange,
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.label_email)) },
                 singleLine = true,
+                isError = state.email.isNotBlank() && !state.isEmailValid,
+                supportingText = if (state.email.isNotBlank() && !state.isEmailValid) {
+                    { Text(stringResource(R.string.error_invalid_email)) }
+                } else null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -65,7 +71,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = state.password,
                 onValueChange = viewModel::onPasswordChange,
-                label = { Text("Şifre") },
+                label = { Text(stringResource(R.string.label_password)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -76,20 +82,15 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = state.confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
-                label = { Text("Şifre Tekrar") },
+                label = { Text(stringResource(R.string.label_confirm_password)) },
                 singleLine = true,
+                isError = state.confirmPassword.isNotBlank() && !state.passwordsMatch,
+                supportingText = if (state.confirmPassword.isNotBlank() && !state.passwordsMatch) {
+                    { Text(stringResource(R.string.error_passwords_no_match)) }
+                } else null,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
-                isError = state.confirmPassword.isNotEmpty() && !state.passwordsMatch,
-                supportingText = {
-                    if (state.confirmPassword.isNotEmpty() && !state.passwordsMatch) {
-                        Text(
-                            text = "Şifreler eşleşmiyor",
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
             )
 
             if (state.errorMessage != null) {
@@ -114,13 +115,13 @@ fun RegisterScreen(
                         color = LocalContentColor.current,
                     )
                 } else {
-                    Text("Kayıt Ol")
+                    Text(stringResource(R.string.register_button))
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(12.dp))
             TextButton(onClick = onNavigateToLogin) {
-                Text("Zaten hesabın var mı? Giriş yap")
+                Text(stringResource(R.string.register_to_login))
             }
         }
     }

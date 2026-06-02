@@ -2,13 +2,16 @@ package com.turkcell.data.di
 
 import com.turkcell.core.domain.auth.AuthRepository
 import com.turkcell.core.domain.event.EventRepository
+import com.turkcell.core.domain.purchase.PurchaseRepository
 import com.turkcell.data.local.TokenStore
 import com.turkcell.data.network.AuthInterceptor
 import com.turkcell.data.network.TokenAuthenticator
 import com.turkcell.data.remote.AuthApi
 import com.turkcell.data.remote.EventApi
+import com.turkcell.data.remote.PurchaseApi
 import com.turkcell.data.repository.AuthRepositoryImpl
 import com.turkcell.data.repository.EventRepositoryImpl
+import com.turkcell.data.repository.PurchaseRepositoryImpl
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -20,14 +23,10 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 private const val BASE_URL = "https://tickets-api.halitkalayci.com/"
 
-// Named Dependencyler
 private val REFRESH_CLIENT = named("refresh_client")
 private val REFRESH_RETROFIT = named("refresh_retrofit")
 private val REFRESH_API = named("refresh_api")
 
-
-// Projede ihtiyaç duyulan her dependency için (data katmanı özelinde)
-// tanımlama burada yapılır.
 val dataModule = module {
     single {
         Json {
@@ -43,9 +42,7 @@ val dataModule = module {
         }
     }
 
-    single {
-        TokenStore(context=get())
-    }
+    single { TokenStore(context = get()) }
 
     single { AuthInterceptor(tokenStore = get()) }
 
@@ -60,25 +57,18 @@ val dataModule = module {
     single(REFRESH_CLIENT) {
         OkHttpClient.Builder().addInterceptor(get<HttpLoggingInterceptor>()).build()
     }
-
-    single(REFRESH_RETROFIT)
-    {
+    single(REFRESH_RETROFIT) {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(get(REFRESH_CLIENT))
             .addConverterFactory(get<Json>().asConverterFactory("application/json".toMediaType()))
             .build()
     }
-
-    single(REFRESH_API)
-    {
-        // 3 tane varsa? Hangisini istediğini?
+    single(REFRESH_API) {
         get<Retrofit>(REFRESH_RETROFIT).create(AuthApi::class.java)
     }
-    // Refresh Stack
 
-
-    // HTTP isteklerini yönetmek..
+    // Ana OkHttpClient
     single {
         OkHttpClient.Builder()
             .addInterceptor(get<AuthInterceptor>())
@@ -94,21 +84,18 @@ val dataModule = module {
             .addConverterFactory(get<Json>().asConverterFactory("application/json".toMediaType()))
             .build()
     }
-    single {
-        get<Retrofit>().create(AuthApi::class.java)
-    }
-    single {
-        get<Retrofit>().create(EventApi::class.java)
-    }
+
+    single { get<Retrofit>().create(AuthApi::class.java) }
+    single { get<Retrofit>().create(EventApi::class.java) }
+    single { get<Retrofit>().create(PurchaseApi::class.java) }
+
     single<AuthRepository> {
-        AuthRepositoryImpl(
-            authApi = get(),
-            tokenStore = get()
-        )
+        AuthRepositoryImpl(authApi = get(), tokenStore = get())
     }
     single<EventRepository> {
-        EventRepositoryImpl(
-            eventApi = get()
-        )
+        EventRepositoryImpl(eventApi = get())
+    }
+    single<PurchaseRepository> {
+        PurchaseRepositoryImpl(purchaseApi = get())
     }
 }

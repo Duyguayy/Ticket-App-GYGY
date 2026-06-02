@@ -5,6 +5,7 @@ import com.turkcell.core.domain.auth.AuthSession
 import com.turkcell.core.domain.auth.User
 import com.turkcell.core.domain.auth.UserRole
 import com.turkcell.data.dto.auth.CredentialsDto
+import com.turkcell.data.dto.auth.RefreshRequestDto
 import com.turkcell.data.local.TokenStore
 import com.turkcell.data.remote.AuthApi
 import com.turkcell.data.util.runCatchingApi
@@ -15,33 +16,40 @@ class AuthRepositoryImpl(
     private val authApi: AuthApi,
     private val tokenStore: TokenStore
 ) : AuthRepository {
+
     override val isLoggedIn: Flow<Boolean> = tokenStore.accessToken.map { it != null }
 
-    override suspend fun login(
-        email: String,
-        password: String
-    ): Result<AuthSession> = runCatchingApi {
-        authApi.login(CredentialsDto(email=email, password=password))
-    }.onSuccess {
-        tokenStore.save(it.accessToken, it.refreshToken)
-    }
-        .map {
-                tokenPairDto -> AuthSession(
-            user = User(
-                tokenPairDto.user.id, tokenPairDto.user.email, UserRole.fromApi(tokenPairDto.user.role),
-            ),
-            accessToken = tokenPairDto.accessToken,
-            refreshToken = tokenPairDto.refreshToken)
+    override suspend fun login(email: String, password: String): Result<AuthSession> =
+        runCatchingApi {
+            authApi.login(CredentialsDto(email = email, password = password))
+        }.onSuccess {
+            tokenStore.save(it.accessToken, it.refreshToken)
+        }.map { dto ->
+            AuthSession(
+                user = User(dto.user.id, dto.user.email, UserRole.fromApi(dto.user.role)),
+                accessToken = dto.accessToken,
+                refreshToken = dto.refreshToken,
+            )
         }
 
-    override suspend fun register(
-        email: String,
-        password: String
-    ): Result<AuthSession> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun register(email: String, password: String): Result<AuthSession> =
+        runCatchingApi {
+            authApi.register(CredentialsDto(email = email, password = password))
+        }.onSuccess {
+            tokenStore.save(it.accessToken, it.refreshToken)
+        }.map { dto ->
+            AuthSession(
+                user = User(dto.user.id, dto.user.email, UserRole.fromApi(dto.user.role)),
+                accessToken = dto.accessToken,
+                refreshToken = dto.refreshToken,
+            )
+        }
 
-    override suspend fun logout(): Result<Unit> {
-        TODO("Not yet implemented")
+    override suspend fun logout(): Result<Unit> = runCatchingApi {
+        val refresh = tokenStore.refreshTokenBlocking()
+        if (refresh != null) {
+            runCatching { authApi.logout(RefreshRequestDto(refresh)) }
+        }
+        tokenStore.clear()
     }
 }

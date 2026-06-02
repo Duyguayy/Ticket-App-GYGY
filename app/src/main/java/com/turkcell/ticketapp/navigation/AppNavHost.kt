@@ -13,9 +13,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.turkcell.core.domain.auth.AuthRepository
+import com.turkcell.ticketapp.screen.EventDetailScreen
 import com.turkcell.ticketapp.screen.HomeScreen
 import com.turkcell.ticketapp.screen.LoginScreen
+import com.turkcell.ticketapp.screen.MyTicketsScreen
 import com.turkcell.ticketapp.screen.RegisterScreen
+import com.turkcell.ticketapp.screen.TicketDetailScreen
 import org.koin.compose.koinInject
 
 @Composable
@@ -43,7 +46,31 @@ private fun SplashScreen() {
 private fun AuthedNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Home) {
         composable<Home> {
-            HomeScreen()
+            HomeScreen(
+                onEventClick = { eventId -> navController.navigate(EventDetail(eventId)) },
+                onMyTicketsClick = { navController.navigate(MyTickets) },
+            )
+        }
+        composable<EventDetail> {
+            EventDetailScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToTickets = {
+                    navController.navigate(MyTickets) {
+                        popUpTo(Home)
+                    }
+                },
+            )
+        }
+        composable<MyTickets> {
+            MyTicketsScreen(
+                onTicketClick = { ticketId -> navController.navigate(TicketDetail(ticketId)) },
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable<TicketDetail> {
+            TicketDetailScreen(
+                onBack = { navController.popBackStack() },
+            )
         }
     }
 }
@@ -59,12 +86,8 @@ private fun UnAuthedNavHost(navController: NavHostController) {
         }
         composable<Register> {
             RegisterScreen(
-                onRegisterSuccess = {
-                    // Kayıt başarılı → token kaydedildi → isLoggedIn=true → AuthedNavHost otomatik açılır
-                },
-                onNavigateToLogin = {
-                    navController.popBackStack()
-                },
+                onRegisterSuccess = {},
+                onNavigateToLogin = { navController.popBackStack() },
             )
         }
     }
