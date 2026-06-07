@@ -31,7 +31,7 @@ class TicketDetailViewModel(
     val state: StateFlow<TicketDetailUiState> = _state.asStateFlow()
 
     init {
-        loadTicket()
+        loadTicket() // Ekran açılınca otomatik çağrılır
     }
 
     fun loadTicket() {

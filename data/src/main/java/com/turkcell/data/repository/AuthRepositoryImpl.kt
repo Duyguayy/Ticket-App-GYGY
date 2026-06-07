@@ -10,12 +10,18 @@ import com.turkcell.data.local.TokenStore
 import com.turkcell.data.remote.AuthApi
 import com.turkcell.data.util.runCatchingApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 
 class AuthRepositoryImpl(
     private val authApi: AuthApi,
-    private val tokenStore: TokenStore
+    private val tokenStore: TokenStore,
 ) : AuthRepository {
+
+    // Login/register sonrası oturum bilgisini bellekte tutuyoruz
+    private val _currentSession = MutableStateFlow<AuthSession?>(null)
+    override val currentSession: Flow<AuthSession?> = _currentSession.asStateFlow()
 
     override val isLoggedIn: Flow<Boolean> = tokenStore.accessToken.map { it != null }
 
@@ -29,7 +35,7 @@ class AuthRepositoryImpl(
                 user = User(dto.user.id, dto.user.email, UserRole.fromApi(dto.user.role)),
                 accessToken = dto.accessToken,
                 refreshToken = dto.refreshToken,
-            )
+            ).also { session -> _currentSession.value = session }
         }
 
     override suspend fun register(email: String, password: String): Result<AuthSession> =
@@ -42,7 +48,7 @@ class AuthRepositoryImpl(
                 user = User(dto.user.id, dto.user.email, UserRole.fromApi(dto.user.role)),
                 accessToken = dto.accessToken,
                 refreshToken = dto.refreshToken,
-            )
+            ).also { session -> _currentSession.value = session }
         }
 
     override suspend fun logout(): Result<Unit> = runCatchingApi {
@@ -51,5 +57,6 @@ class AuthRepositoryImpl(
             runCatching { authApi.logout(RefreshRequestDto(refresh)) }
         }
         tokenStore.clear()
+        _currentSession.value = null
     }
 }

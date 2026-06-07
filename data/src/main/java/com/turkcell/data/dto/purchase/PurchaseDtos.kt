@@ -55,6 +55,7 @@ data class TicketTypeDetailDto(
 data class EventSummaryDto(
     val id: String,
     val name: String,
-    val venue: String,
-    val startsAt: String,
+    val place: String? = null,   // API "place" gönderiyor, "venue" değil
+    val venue: String? = null,   // ihtimale karşı venue da nullable
+    val startsAt: String? = null,
 )

@@ -18,5 +18,9 @@ object MyTickets
 @Serializable
 data class TicketDetail(val id: String)
 
+@Serializable
+object Staff
+
+
 
 

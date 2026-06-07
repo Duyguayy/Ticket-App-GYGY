@@ -16,12 +16,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,9 +54,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(stringResource(R.string.home_title))
-                },
+                title = { Text(stringResource(R.string.home_title)) },
                 actions = {
                     IconButton(onClick = viewModel::logout) {
                         Icon(
@@ -63,24 +64,36 @@ fun HomeScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = {},
+                    icon = {},
+                    label = { Text(stringResource(R.string.nav_events)) }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onMyTicketsClick,
+                    icon = {},
+                    label = { Text(stringResource(R.string.nav_my_tickets)) }
+                )
+            }
         }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(vertical = 16.dp)
         ) {
-
             Text(
                 text = stringResource(R.string.upcoming_events),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             EventsRow(
                 isLoading = state.isEventsLoading,
                 error = state.eventsError,
@@ -103,34 +116,21 @@ private fun EventsRow(
     when {
         isLoading -> {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp),
+                modifier = Modifier.fillMaxWidth().height(220.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
             }
         }
-
         error != null -> {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error
-                )
-
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
                 Spacer(modifier = Modifier.height(8.dp))
-
-                TextButton(
-                    onClick = onRetry
-                ) {
+                TextButton(onClick = onRetry) {
                     Text(stringResource(R.string.retry))
                 }
             }
         }
-
         events.isEmpty() -> {
             Text(
                 text = stringResource(R.string.no_events),
@@ -138,24 +138,13 @@ private fun EventsRow(
                 modifier = Modifier.padding(16.dp)
             )
         }
-
         else -> {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(
-                    items = events,
-                    key = { it.id }
-                ) { event ->
-
-                    EventCard(
-                        event = event,
-                        onClick = {
-                            onEventClick(event.id)
-                        }
-                    )
-
+                items(items = events, key = { it.id }) { event ->
+                    EventCard(event = event, onClick = { onEventClick(event.id) })
                     Spacer(modifier = Modifier.width(12.dp))
                 }
             }
@@ -164,31 +153,19 @@ private fun EventsRow(
 }
 
 @Composable
-private fun EventCard(
-    event: Event,
-    onClick: () -> Unit
-) {
+private fun EventCard(event: Event, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .width(260.dp)
             .height(280.dp)
             .clickable(onClick = onClick)
     ) {
-
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-
+        Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp
-                        )
-                    )
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
@@ -198,28 +175,10 @@ private fun EventCard(
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
-
-            Column(
-                modifier = Modifier.padding(12.dp)
-            ) {
-
-                Text(
-                    text = event.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1
-                )
-
-                Text(
-                    text = event.venue,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1
-                )
-
-                Text(
-                    text = event.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 2
-                )
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(text = event.name, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                Text(text = event.venue, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                Text(text = event.description, style = MaterialTheme.typography.bodySmall, maxLines = 2)
             }
         }
     }

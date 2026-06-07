@@ -74,4 +74,6 @@ dependencies {
 
     // QR Kod üretimi
     implementation("com.google.zxing:core:3.5.3")
+
+    implementation(libs.zxing.android.embedded)
 }

@@ -13,11 +13,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.turkcell.core.domain.auth.AuthRepository
+import com.turkcell.core.domain.auth.UserRole
 import com.turkcell.ticketapp.screen.EventDetailScreen
 import com.turkcell.ticketapp.screen.HomeScreen
 import com.turkcell.ticketapp.screen.LoginScreen
 import com.turkcell.ticketapp.screen.MyTicketsScreen
 import com.turkcell.ticketapp.screen.RegisterScreen
+import com.turkcell.ticketapp.screen.StaffScreen
 import com.turkcell.ticketapp.screen.TicketDetailScreen
 import org.koin.compose.koinInject
 
@@ -26,15 +28,27 @@ fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     authRepository: AuthRepository = koinInject(),
 ) {
-    val isLoggedIn by authRepository.isLoggedIn.collectAsStateWithLifecycle(initialValue = null)
+    val isLoggedIn by authRepository.isLoggedIn
+        .collectAsStateWithLifecycle(initialValue = null)
 
     when (isLoggedIn) {
         null  -> SplashScreen()
-        true  -> AuthedNavHost(navController)
         false -> UnAuthedNavHost(navController)
+        true  -> {
+            // Giriş yapıldı — hangi rol?
+            val session by authRepository.currentSession
+                .collectAsStateWithLifecycle(initialValue = null)
+
+            when (session?.user?.role) {
+                UserRole.STAFF,
+                UserRole.ADMIN -> StaffNavHost(navController)
+                else           -> UserNavHost(navController)
+            }
+        }
     }
 }
 
+// ─── Splash ──────────────────────────────────────────────────────────────────
 @Composable
 private fun SplashScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -42,8 +56,28 @@ private fun SplashScreen() {
     }
 }
 
+// ─── Giriş yapılmamış ────────────────────────────────────────────────────────
 @Composable
-private fun AuthedNavHost(navController: NavHostController) {
+private fun UnAuthedNavHost(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = Login) {
+        composable<Login> {
+            LoginScreen(
+                onLoginSuccess = {},
+                onNavigateToRegister = { navController.navigate(Register) },
+            )
+        }
+        composable<Register> {
+            RegisterScreen(
+                onRegisterSuccess = {},
+                onNavigateToLogin = { navController.popBackStack() },
+            )
+        }
+    }
+}
+
+// ─── USER rolü ───────────────────────────────────────────────────────────────
+@Composable
+private fun UserNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Home) {
         composable<Home> {
             HomeScreen(
@@ -55,9 +89,7 @@ private fun AuthedNavHost(navController: NavHostController) {
             EventDetailScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateToTickets = {
-                    navController.navigate(MyTickets) {
-                        popUpTo(Home)
-                    }
+                    navController.navigate(MyTickets) { popUpTo(Home) }
                 },
             )
         }
@@ -75,20 +107,13 @@ private fun AuthedNavHost(navController: NavHostController) {
     }
 }
 
+// ─── STAFF / ADMIN rolü ──────────────────────────────────────────────────────
 @Composable
-private fun UnAuthedNavHost(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Login) {
-        composable<Login> {
-            LoginScreen(
-                onLoginSuccess = {},
-                onNavigateToRegister = { navController.navigate(Register) },
-            )
-        }
-        composable<Register> {
-            RegisterScreen(
-                onRegisterSuccess = {},
-                onNavigateToLogin = { navController.popBackStack() },
-            )
+private fun StaffNavHost(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = Staff) {
+        composable<Staff> {
+            StaffScreen()
+            // Logout → authRepository.logout() → isLoggedIn=false → AppNavHost Login'e düşer
         }
     }
 }
