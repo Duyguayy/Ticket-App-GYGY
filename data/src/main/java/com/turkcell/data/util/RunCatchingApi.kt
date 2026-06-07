@@ -5,7 +5,6 @@ import com.turkcell.data.network.NetworkException
 import retrofit2.HttpException // 10 ay sonra garantisi yok..
 import java.io.IOException
 
-// Todo: İlerde tekrar konuşalım.
 suspend inline fun <T> runCatchingApi(crossinline block: suspend () -> T): Result<T> = try {
     Result.success(block())
 } catch(e: HttpException) // HttpException

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,43 +26,55 @@ import org.koin.compose.koinInject
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController = rememberNavController(),
     authRepository: AuthRepository = koinInject(),
 ) {
+    // null  → henüz DataStore'dan okuma bitmedi (splash göster)
+    // false → giriş yapılmamış → Login
+    // true  → giriş yapılmış → rol kontrolü
     val isLoggedIn by authRepository.isLoggedIn
         .collectAsStateWithLifecycle(initialValue = null)
 
     when (isLoggedIn) {
-        null  -> SplashScreen()
-        false -> UnAuthedNavHost(navController)
-        true  -> {
-            // Giriş yapıldı — hangi rol?
+        null -> SplashScreen()
+
+        false -> UnAuthedNavHost(navController = rememberNavController())
+
+        true -> {
             val session by authRepository.currentSession
                 .collectAsStateWithLifecycle(initialValue = null)
 
+            // Token var ama session henüz bellekte yok (soğuk açılış).
+            // restoreSession() çağrısı session'ı dolduracak, recompose tetiklenecek.
+            LaunchedEffect(Unit) {
+                authRepository.restoreSession()
+            }
+
             when (session?.user?.role) {
+                null -> {
+                    // restoreSession tamamlanana kadar splash
+                    SplashScreen()
+                }
                 UserRole.STAFF,
-                UserRole.ADMIN -> StaffNavHost(navController)
-                else           -> UserNavHost(navController)
+                UserRole.ADMIN -> StaffNavHost(navController = rememberNavController())
+
+                UserRole.USER -> UserNavHost(navController = rememberNavController())
             }
         }
     }
 }
-
-// ─── Splash ──────────────────────────────────────────────────────────────────
 @Composable
 private fun SplashScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator()
     }
 }
-
-// ─── Giriş yapılmamış ────────────────────────────────────────────────────────
 @Composable
 private fun UnAuthedNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Login) {
         composable<Login> {
             LoginScreen(
+                // isLoggedIn Flow tetiklenince AppNavHost bu NavHost'u yok edip
+                // UserNavHost / StaffNavHost render eder — callback boş kalabilir.
                 onLoginSuccess = {},
                 onNavigateToRegister = { navController.navigate(Register) },
             )
@@ -75,7 +88,7 @@ private fun UnAuthedNavHost(navController: NavHostController) {
     }
 }
 
-// ─── USER rolü ───────────────────────────────────────────────────────────────
+// USER rolü
 @Composable
 private fun UserNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Home) {
@@ -107,7 +120,7 @@ private fun UserNavHost(navController: NavHostController) {
     }
 }
 
-// ─── STAFF / ADMIN rolü ──────────────────────────────────────────────────────
+// STAFF / ADMIN rolü
 @Composable
 private fun StaffNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Staff) {

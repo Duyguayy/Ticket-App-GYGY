@@ -20,7 +20,6 @@ fun generateQrBitmap(content: String, size: Int): Bitmap? {
             size,
             hints
         )
-        // ARGB_8888 kullan — RGB_565 Compose'da bazen render edilmiyor
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         for (x in 0 until size) {
             for (y in 0 until size) {

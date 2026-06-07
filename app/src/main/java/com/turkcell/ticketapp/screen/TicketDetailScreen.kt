@@ -195,7 +195,6 @@ private fun QrContent(
                 }
             }
             else -> {
-                // QR üretilemedi — qrCode değerini göster
                 Box(
                     modifier = Modifier
                         .size(280.dp)

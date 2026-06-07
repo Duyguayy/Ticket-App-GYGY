@@ -53,7 +53,6 @@ val dataModule = module {
         )
     }
 
-    // Refresh Stack
     single(REFRESH_CLIENT) {
         OkHttpClient.Builder().addInterceptor(get<HttpLoggingInterceptor>()).build()
     }

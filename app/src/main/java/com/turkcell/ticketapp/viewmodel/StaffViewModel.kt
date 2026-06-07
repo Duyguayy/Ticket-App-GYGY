@@ -10,7 +10,6 @@ class StaffViewModel(
 ) : ViewModel() {
 
     // QR tarama sonucunu API'ye gönder
-    // Şimdilik sadece log; POST /checkin/scan eklenince buraya bağlanır
     fun checkin(qrCode: String) {
         // TODO: checkinRepository.scan(qrCode)
     }

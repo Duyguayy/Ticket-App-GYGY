@@ -37,7 +37,6 @@ internal fun TicketDto.toDomain(): Ticket = Ticket(
     priceCents = ticketType?.priceCents ?: 0L,
     eventId = ticketType?.event?.id.orEmpty(),
     eventName = ticketType?.event?.name.orEmpty(),
-    // API "place" gönderiyor, önce place'e bak, yoksa venue'ye bak
     eventVenue = ticketType?.event?.place
         ?: ticketType?.event?.venue
         ?: "",

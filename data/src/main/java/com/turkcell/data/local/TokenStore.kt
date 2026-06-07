@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 
-// Single Source garantilemek.
 private val Context.authDataStore by preferencesDataStore(name="auth_prefs")
 
 class TokenStore(private val context: Context)
@@ -18,8 +17,6 @@ class TokenStore(private val context: Context)
         val ACCESS = stringPreferencesKey("access_token")
         val REFRESH = stringPreferencesKey("refresh_token")
     }
-
-    // UI tarafından collect edilmek için
     val accessToken: Flow<String?> = context.authDataStore.data.map { it[Keys.ACCESS] }
     val refreshToken: Flow<String?> = context.authDataStore.data.map { it[Keys.REFRESH] }
 

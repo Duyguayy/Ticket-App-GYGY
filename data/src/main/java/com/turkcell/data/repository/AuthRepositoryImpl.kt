@@ -12,6 +12,7 @@ import com.turkcell.data.util.runCatchingApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class AuthRepositoryImpl(
@@ -19,11 +20,25 @@ class AuthRepositoryImpl(
     private val tokenStore: TokenStore,
 ) : AuthRepository {
 
-    // Login/register sonrası oturum bilgisini bellekte tutuyoruz
+    // Login/register sonrası ve restoreSession ile oturum bilgisini bellekte tutuyoruz
     private val _currentSession = MutableStateFlow<AuthSession?>(null)
     override val currentSession: Flow<AuthSession?> = _currentSession.asStateFlow()
 
     override val isLoggedIn: Flow<Boolean> = tokenStore.accessToken.map { it != null }
+
+    override suspend fun restoreSession() {
+        val accessToken = tokenStore.accessToken.first() ?: return
+        val refreshToken = tokenStore.refreshToken.first() ?: return
+
+        if (_currentSession.value != null) return // Zaten yüklü
+
+
+        _currentSession.value = AuthSession(
+            user = User(id = "", email = "", role = UserRole.USER),
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+        )
+    }
 
     override suspend fun login(email: String, password: String): Result<AuthSession> =
         runCatchingApi {
