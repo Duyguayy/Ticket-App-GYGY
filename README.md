@@ -15,6 +15,7 @@ Ticket App, etkinlik bileti satın alma, biletleri görüntüleme ve kapıda QR 
 - [Yapılandırma](#yapılandırma)
 - [Derleme ve Çalıştırma](#derleme-ve-çalıştırma)
 - [API Referansı](#api-referansı)
+- [Güvenlik](#güvenlik)
 - [Bilinen Sınırlamalar](#bilinen-sınırlamalar)
 
 ## Genel Bakış
@@ -87,13 +88,7 @@ TicketApp/
 
 Uygulama, sunucu ile iletişim için bir taban URL değerine ihtiyaç duyar. Yerel geliştirme için sunucunun `http://localhost:3000` adresinde çalıştığı varsayılır. Fiziksel cihaz veya farklı bir ortamda test edilecekse, ağ katmanındaki taban adresin ilgili ortamın erişilebilir adresiyle güncellenmesi gerekir.
 
-Geliştirme ortamı için sunucu tarafında hazır tanımlı örnek kullanıcılar mevcuttur:
-
-| E-posta | Şifre | Rol |
-| --- | --- | --- |
-| admin@example.com | admin123 | ADMIN |
-| staff@example.com | staff123 | STAFF |
-| user@example.com | user123 | USER |
+Geliştirme ortamı için gereken örnek (seed) kullanıcı bilgileri güvenlik nedeniyle bu dokümanda paylaşılmamıştır; sunucu ekibinden veya dahili geliştirme ortamı dokümantasyonundan temin edilmelidir.
 
 ## Derleme ve Çalıştırma
 
@@ -112,6 +107,15 @@ Testleri çalıştırmak için:
 ## API Referansı
 
 Uygulamanın tükettiği REST API'nin uç noktaları, kimlik doğrulama akışı, hata formatı ve tipik istemci senaryoları [API.MD](API.MD) dosyasında ayrıntılı olarak açıklanmıştır.
+
+## Güvenlik
+
+- Kimlik doğrulama, sunucu tarafından üretilen JWT erişim (access) ve yenileme (refresh) token çiftine dayanır; korumalı isteklere `Authorization: Bearer <accessToken>` başlığı istemci tarafında otomatik olarak eklenir.
+- Access token süresi dolduğunda (401 yanıtı) istemci, refresh token ile yeni bir token çifti alıp isteği otomatik olarak tekrar dener; eşzamanlı isteklerin tekrar tekrar yenileme çağrısı yapmaması için senkronizasyon uygulanır.
+- Refresh token rotation uygulanır: her yenileme çağrısında sunucu yeni bir refresh token üretir ve öncekini geçersiz kılar.
+- **Bilinen risk:** Access ve refresh token'lar şu anda cihazda şifrelenmemiş Jetpack DataStore Preferences ile düz metin olarak saklanmaktadır. Bu, cihaza fiziksel veya kök (root) erişimi olan biri için token'ların okunmasına imkân tanır. Üretim kullanımı öncesinde bu katmanın Android Keystore destekli şifreli bir depolama mekanizmasıyla değiştirilmesi önerilir.
+- Yerel geliştirme ortamı varsayılan olarak şifresiz `http://localhost:3000` adresini kullanır; üretim ortamında bağlantının HTTPS üzerinden yapılması zorunlu tutulmalıdır.
+- Ağ isteklerini loglayan araçlar (ör. OkHttp logging interceptor) yalnızca geliştirme derlemelerinde etkin tutulmalı, üretim derlemelerinde şifre ve token gibi hassas bilgilerin loglanması önlenmelidir.
 
 ## Bilinen Sınırlamalar
 
